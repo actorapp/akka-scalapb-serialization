@@ -1,5 +1,13 @@
 import com.trueaccord.scalapb.{ScalaPbPlugin => PB}
 
+scalaVersion := "2.11.7"
+
+name := "akka-scalapb-serialization"
+organization := "im.actor"
+organizationName := "Actor LLC"
+organizationHomepage := Some(new URL("https://actor.im/"))
+
+
 PB.protobufSettings
 
 PB.runProtoc in PB.protobufConfig := (args => com.github.os72.protocjar.Protoc.runProtoc("-v300" +: args.toArray))
