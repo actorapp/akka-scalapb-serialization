@@ -18,7 +18,7 @@ val akkaV = "2.4.0"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaV,
-  "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.5.14",
+  "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.5.15",
   "com.google.protobuf" % "protobuf-java" % "3.0.0-alpha-3",
   "com.github.ben-manes.caffeine" % "caffeine" % "1.2.0"
 )
