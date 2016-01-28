@@ -75,13 +75,29 @@ object ActorSerializer {
   def toBinary(o: AnyRef): Array[Byte] = toMessage(o).toByteArray
 }
 
-class ActorSerializer extends Serializer {
+class ActorSerializerObsolete extends Serializer {
 
   override def identifier: Int = 3456
 
   override def includeManifest: Boolean = false
 
   override def fromBinary(bytes: Array[Byte], manifest: Option[Class[_]]): AnyRef = ActorSerializer.fromBinary(bytes)
+
+  override def toBinary(o: AnyRef): Array[Byte] = ActorSerializer.toBinary(o)
+}
+
+class ActorSerializer extends SerializerWithStringManifest {
+
+  override def identifier: Int = 3457
+
+  override def manifest(o: AnyRef): String =
+    ActorSerializer
+      .get(o.getClass)
+      .map(_.toString)
+      .getOrElse(throw new IllegalArgumentException(s"Class ${o.getClass} is not registered"))
+
+  override def fromBinary(bytes: Array[Byte], manifest: String): AnyRef =
+    ActorSerializer.fromMessage(SerializedMessage(manifest.toInt, ByteString.copyFrom(bytes)))
 
   override def toBinary(o: AnyRef): Array[Byte] = ActorSerializer.toBinary(o)
 }

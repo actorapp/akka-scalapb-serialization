@@ -14,7 +14,7 @@ PB.protobufSettings
 
 PB.runProtoc in PB.protobufConfig := (args => com.github.os72.protocjar.Protoc.runProtoc("-v300" +: args.toArray))
 
-val akkaV = "2.4.0"
+val akkaV = "2.4.2-RC1"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaV,
