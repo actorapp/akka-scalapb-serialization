@@ -42,35 +42,37 @@ object ActorSerializer {
 
   def get(clazz: Class[_]) = Option(reverseMap.getIfPresent(clazz))
 
-  def fromBinary(bytes: Array[Byte]): AnyRef = {
-    val SerializedMessage(id, bodyBytes) = SerializedMessage.parseFrom(bytes)
-
-    ActorSerializer.get(id) match {
+  def fromMessage(message: SerializedMessage): AnyRef = {
+    ActorSerializer.get(message.id) match {
       case Some(clazz) ⇒
         val field = clazz.getField("MODULE$").get(null)
 
         clazz
           .getDeclaredMethod("validate", ARRAY_OF_BYTE_ARRAY: _*)
-          .invoke(field, bodyBytes.toByteArray) match {
-            case Success(msg) ⇒ msg.asInstanceOf[GeneratedMessage]
-            case Failure(e)   ⇒ throw e
-          }
-      case None ⇒ throw new IllegalArgumentException(s"Can't find mapping for id ${id}")
+          .invoke(field, message.bytes.toByteArray) match {
+          case Success(msg) ⇒ msg.asInstanceOf[GeneratedMessage]
+          case Failure(e)   ⇒ throw e
+        }
+      case None ⇒ throw new IllegalArgumentException(s"Can't find mapping for id: ${message.id}")
     }
   }
 
-  def toBinary(o: AnyRef): Array[Byte] = {
+  def fromBinary(bytes: Array[Byte]): AnyRef = fromMessage(SerializedMessage.parseFrom(bytes))
+
+  def toMessage(o: AnyRef): SerializedMessage = {
     ActorSerializer.get(o.getClass) match {
       case Some(id) ⇒
         o match {
-          case m: GeneratedMessage  ⇒ SerializedMessage(id, ByteString.copyFrom(m.toByteArray)).toByteArray
-          case m: GGeneratedMessage ⇒ SerializedMessage(id, ByteString.copyFrom(m.toByteArray)).toByteArray
+          case m: GeneratedMessage  ⇒ SerializedMessage(id, ByteString.copyFrom(m.toByteArray))
+          case m: GGeneratedMessage ⇒ SerializedMessage(id, ByteString.copyFrom(m.toByteArray))
           case _                    ⇒ throw new IllegalArgumentException(s"Can't serialize non-scalapb message [${o}]")
         }
       case None ⇒
         throw new IllegalArgumentException(s"Can't find mapping for message [${o}]")
     }
   }
+
+  def toBinary(o: AnyRef): Array[Byte] = toMessage(o).toByteArray
 }
 
 class ActorSerializer extends Serializer {
