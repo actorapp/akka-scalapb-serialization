@@ -24,14 +24,14 @@ object ActorSerializer {
     get(id) match {
       case None ⇒
         get(clazz) match {
-          case Some(regId) ⇒ throw new IllegalArgumentException(s"There is already a mapping for class: ${clazz}, id: ${regId}")
+          case Some(regId) ⇒ throw new IllegalArgumentException(s"There is already a mapping for class: $clazz, id: $regId")
           case None ⇒
             map.put(id, Class.forName(clazz.getName + '$'))
             reverseMap.put(clazz, id)
         }
       case Some(registered) ⇒
-        if (!get(clazz).exists(_ == id))
-          throw new IllegalArgumentException(s"There is already a mapping with id ${id}: ${map.getIfPresent(id)}")
+        if (!get(clazz).contains(id))
+          throw new IllegalArgumentException(s"There is already a mapping with id $id: ${map.getIfPresent(id)}")
     }
   }
 
@@ -99,5 +99,9 @@ class ActorSerializer extends SerializerWithStringManifest {
   override def fromBinary(bytes: Array[Byte], manifest: String): AnyRef =
     ActorSerializer.fromMessage(SerializedMessage(manifest.toInt, ByteString.copyFrom(bytes)))
 
-  override def toBinary(o: AnyRef): Array[Byte] = ActorSerializer.toBinary(o)
+  override def toBinary(o: AnyRef): Array[Byte] =
+    o match {
+      case g: GeneratedMessage => g.toByteArray
+      case _ => throw new IllegalArgumentException("Only GeneratedMessage is supported")
+    }
 }
